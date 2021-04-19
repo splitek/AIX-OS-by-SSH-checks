@@ -7,10 +7,17 @@ This templates are made for monitoring AIX system (CPU, memory, filesystem) with
 * Monitoring done by Zabbix SSH checks
 * Commands used to gather the data: uptime, vmstat, lsfs, df
 
+Template files:
+
+[AIX OS by SSH checks.xml](AIX%20OS%20by%20SSH%20checks.xml) for CPU & MEM
+
+[AIX filesystems by SSH checks.xml](AIX%20filesystems%20by%20SSH%20checks.xml) for filesystems
+
 This templates was tested on:
 
 * Zabbix 5.0.x
 * AIX Version 6.1
+
 
 # Table of Contents:
 
