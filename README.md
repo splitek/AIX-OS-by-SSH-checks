@@ -83,9 +83,9 @@ Filesystems template:
 |-|-|-|
 | {$SSH_USER} | username | User name for connection |
 | {$VFS.FS.FSNAME.MATCHES} | .+ | This macro is used in filesystems discovery for filesystems selection |
-| {$VFS.FS.FSNAME.NOT_MATCHES} | ^(/dev|/sys|/run|/proc|.+/shm$) | This macro is used in filesystems discovery for filesystems selection |
-| {$VFS.FS.FSTYPE.MATCHES} | ^(btrfs|ext2|ext3|ext4|reiser|xfs|ffs|ufs|jfs|jfs2|vxfs|hfs|apfs|refs|ntfs|zfs|nfs)$ | This macro is used in filesystems discovery for filesystems selection |
-| {$VFS.FS.FSTYPE.NOT_MATCHES} | ^\s$|^procfs$ | This macro is used in filesystems discovery for filesystems selection |
+| {$VFS.FS.FSNAME.NOT_MATCHES} | ^(/dev\|/sys\|/run\|/proc\|\.+/shm$) | This macro is used in filesystems discovery for filesystems selection |
+| {$VFS.FS.FSTYPE.MATCHES} | ^(btrfs\|ext2\|ext3\|ext4\|reiser\|xfs\|ffs\|ufs\|jfs\|jfs2\|vxfs\|hfs\|apfs\|refs\|ntfs\|\zfs|\nfs)$ | This macro is used in filesystems discovery for filesystems selection |
+| {$VFS.FS.FSTYPE.NOT_MATCHES} | ^\s$\|^procfs$ | This macro is used in filesystems discovery for filesystems selection |
 | {$VFS.FS.INODE.PUSED.MAX.CRIT} | 90 | inode critical threshold % |
 | {$VFS.FS.INODE.PUSED.MAX.WARN} | 80 | inode warning threshold % |
 | {$VFS.FS.PUSED.MAX.CRIT} | 95 | used space critical threshold % |
