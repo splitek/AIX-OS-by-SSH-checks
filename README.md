@@ -1,0 +1,1 @@
+# AIX-OS-by-SSH-checks
