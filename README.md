@@ -15,7 +15,7 @@ Template files:
 
 This templates was tested on:
 
-* Zabbix 5.0.x
+* Zabbix 4.4.x, 5.0.x
 * AIX Version 6.1
 
 
