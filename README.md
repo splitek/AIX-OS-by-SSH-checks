@@ -86,7 +86,7 @@ Filesystems template:
 
 ## Monitored OS parameters
 
-### **Load average**
+#### Load average
 
 | item | key | `uptime` command parameter |
 |-|-|-|
@@ -94,7 +94,7 @@ Filesystems template:
 | Processor load (5 min average per core) | system.cpu.load.ssh[percpu,avg5] | load average |
 | Processor load (15 min average per core) | system.cpu.load.ssh[percpu,avg15] | load average |
 
-### **System configuration**
+#### System configuration
 
 | item | key | `vmstat` command parameter |
 |-|-|-|
@@ -102,21 +102,21 @@ Filesystems template:
 | Total memory | system.memory.size.ssh[total] | mem - Indicates the amount of memory |
 | Entitled capacity | system.ent.ssh | ent - Indicates the entitled capacity. Displays only when the partition is running with shared processor |
 
-### **kthr: Information about kernel thread states**
+#### kthr: Information about kernel thread states
 
 | item | key | `vmstat` command parameter |
 |-|-|-|
 | Runnable kernel threads (run queue) | system.cpu.kthr.r.ssh | r - Average number of runnable kernel threads over the sampling interval. Runnable threads consist of the threads that are ready but still waiting to run, and the threads that are already running |
 | Runnable kernel threads (wait queue) | system.cpu.kthr.b.ssh | b - Average number of kernel threads that are placed in the Virtual Memory Manager (VMM) wait queue (awaiting resource, awaiting input/output) over the sampling interval |
 
-### **Memory: Information about the usage of virtual and real memory.** Virtual pages are considered active if they are accessed. A page is 4096 bytes
+#### Memory: Information about the usage of virtual and real memory. _Virtual pages are considered active if they are accessed. A page is 4096 bytes_
 
 | item | key | `vmstat` command parameter |
 |-|-|-|
 | Active virtual pages | system.mem.avm.ssh | avm - Active virtual pages |
 | Size of the free list | system.mem.fre.ssh | fre - Size of the free list |
 
-### **Page: Information about page faults and paging activity.** This information is averaged over the interval and given in units per second
+#### Page: Information about page faults and paging activity. _This information is averaged over the interval and given in units per second_
 
 | item | key | `vmstat` command parameter |
 |-|-|-|
@@ -127,7 +127,7 @@ Filesystems template:
 | Pages that are scanned by page-replacement algorithm | system.mem.page.sr.ssh | sr - Pages that are scanned by page-replacement algorithm |
 | Clock cycles by page-replacement algorithm | system.mem.page.cy.ssh | cy - Clock cycles by page-replacement algorithm |
 
-### **Faults: Trap and interrupt rate averages per second over the sampling interval.**
+#### Faults: Trap and interrupt rate averages per second over the sampling interval
 
 | item | key | `vmstat` command parameter |
 |-|-|-|
@@ -135,7 +135,7 @@ Filesystems template:
 | CPU System time | system.cpu.sy.ssh | sy - System calls |
 | Kernel thread context switches | system.faults.cs.ssh | cs - Kernel thread context switches |
 
-### **CPU: Breakdown of percentage usage of processor time.**
+#### CPU: Breakdown of percentage usage of processor time
 
 | item | key | `vmstat` command parameter |
 |-|-|-|
