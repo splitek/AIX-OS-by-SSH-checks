@@ -1,0 +1,489 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<zabbix_export>
+    <version>5.0</version>
+    <date>2021-04-19T15:33:32Z</date>
+    <groups>
+        <group>
+            <name>Templates/Modules</name>
+        </group>
+        <group>
+            <name>Templates/Operating systems</name>
+        </group>
+    </groups>
+    <templates>
+        <template>
+            <template>Template AIX filesystems by SSH checks</template>
+            <name>Template AIX filesystems by SSH checks</name>
+            <description>uses 'lsfs' 'df' commands</description>
+            <groups>
+                <group>
+                    <name>Templates/Modules</name>
+                </group>
+                <group>
+                    <name>Templates/Operating systems</name>
+                </group>
+            </groups>
+            <discovery_rules>
+                <discovery_rule>
+                    <name>Mounted filesystem discovery</name>
+                    <type>SSH</type>
+                    <key>ssh.run[discovery_fs]</key>
+                    <delay>12h</delay>
+                    <params>lsfs -c | tr -d '#'</params>
+                    <authtype>PUBLIC_KEY</authtype>
+                    <username>{$SSH_USER}</username>
+                    <publickey>id_rsa.pub</publickey>
+                    <privatekey>id_rsa</privatekey>
+                    <filter>
+                        <evaltype>AND</evaltype>
+                        <conditions>
+                            <condition>
+                                <macro>{#FSNAME}</macro>
+                                <value>{$VFS.FS.FSNAME.NOT_MATCHES}</value>
+                                <operator>NOT_MATCHES_REGEX</operator>
+                                <formulaid>A</formulaid>
+                            </condition>
+                            <condition>
+                                <macro>{#FSNAME}</macro>
+                                <value>{$VFS.FS.FSNAME.MATCHES}</value>
+                                <formulaid>B</formulaid>
+                            </condition>
+                            <condition>
+                                <macro>{#FSTYPE}</macro>
+                                <value>{$VFS.FS.FSTYPE.NOT_MATCHES}</value>
+                                <operator>NOT_MATCHES_REGEX</operator>
+                                <formulaid>C</formulaid>
+                            </condition>
+                            <condition>
+                                <macro>{#FSTYPE}</macro>
+                                <value>{$VFS.FS.FSTYPE.MATCHES}</value>
+                                <formulaid>D</formulaid>
+                            </condition>
+                        </conditions>
+                    </filter>
+                    <lifetime>60d</lifetime>
+                    <description>Discovery of currently mounted file systems</description>
+                    <item_prototypes>
+                        <item_prototype>
+                            <name>{#FSNAME}: Filesystem data master</name>
+                            <type>SSH</type>
+                            <key>ssh.run[master_{#FSNAME}]</key>
+                            <delay>5m</delay>
+                            <history>0</history>
+                            <trends>0</trends>
+                            <value_type>TEXT</value_type>
+                            <params>df -v {#FSNAME} | awk '{gsub(/Mounted on/,&quot;Mounted_on&quot;)}1' | tr -s ' ' ',' | awk '{gsub(/,%/,&quot;,P&quot;)}1' | tr -d '%'</params>
+                            <authtype>PUBLIC_KEY</authtype>
+                            <username>{$SSH_USER}</username>
+                            <publickey>id_rsa.pub</publickey>
+                            <privatekey>id_rsa</privatekey>
+                            <application_prototypes>
+                                <application_prototype>
+                                    <name>Filesystem {#FSNAME}</name>
+                                </application_prototype>
+                            </application_prototypes>
+                            <preprocessing>
+                                <step>
+                                    <type>CSV_TO_JSON</type>
+                                    <params>,
+
+1</params>
+                                </step>
+                            </preprocessing>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>{#FSNAME}: Used inodes in number</name>
+                            <type>DEPENDENT</type>
+                            <key>vfs.fs.inode[{#FSNAME},iused]</key>
+                            <delay>0</delay>
+                            <history>7d</history>
+                            <value_type>FLOAT</value_type>
+                            <application_prototypes>
+                                <application_prototype>
+                                    <name>Filesystem {#FSNAME}</name>
+                                </application_prototype>
+                            </application_prototypes>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$..Iused</params>
+                                </step>
+                                <step>
+                                    <type>TRIM</type>
+                                    <params>&quot;[]</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>ssh.run[master_{#FSNAME}]</key>
+                            </master_item>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>{#FSNAME}: Used inodes in %</name>
+                            <type>DEPENDENT</type>
+                            <key>vfs.fs.inode[{#FSNAME},pused]</key>
+                            <delay>0</delay>
+                            <history>7d</history>
+                            <value_type>FLOAT</value_type>
+                            <units>%</units>
+                            <application_prototypes>
+                                <application_prototype>
+                                    <name>Filesystem {#FSNAME}</name>
+                                </application_prototype>
+                            </application_prototypes>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$..PIused</params>
+                                </step>
+                                <step>
+                                    <type>TRIM</type>
+                                    <params>&quot;[]</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>ssh.run[master_{#FSNAME}]</key>
+                            </master_item>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{last()}&gt;={$VFS.FS.INODE.PUSED.MAX.CRIT:&quot;{#FSNAME}&quot;}</expression>
+                                    <name>{#FSNAME}: Running out of free inodes (used &gt;= {$VFS.FS.INODE.PUSED.MAX.CRIT:&quot;{#FSNAME}&quot;}%)</name>
+                                    <opdata>Free inodes: {ITEM.LASTVALUE1}</opdata>
+                                    <priority>AVERAGE</priority>
+                                    <description>It may become impossible to write to disk if there are no index nodes left.&#13;
+As symptoms, 'No space left on device' or 'Disk is full' errors may be seen even though free space is available.</description>
+                                    <manual_close>YES</manual_close>
+                                </trigger_prototype>
+                                <trigger_prototype>
+                                    <expression>{last()}&gt;={$VFS.FS.INODE.PUSED.MAX.WARN:&quot;{#FSNAME}&quot;}</expression>
+                                    <name>{#FSNAME}: Running out of free inodes (used &gt;= {$VFS.FS.INODE.PUSED.MAX.WARN:&quot;{#FSNAME}&quot;}%)</name>
+                                    <opdata>Free inodes: {ITEM.LASTVALUE1}</opdata>
+                                    <priority>WARNING</priority>
+                                    <description>It may become impossible to write to disk if there are no index nodes left.&#13;
+As symptoms, 'No space left on device' or 'Disk is full' errors may be seen even though free space is available.</description>
+                                    <manual_close>YES</manual_close>
+                                    <dependencies>
+                                        <dependency>
+                                            <name>{#FSNAME}: Running out of free inodes (used &gt;= {$VFS.FS.INODE.PUSED.MAX.CRIT:&quot;{#FSNAME}&quot;}%)</name>
+                                            <expression>{Template AIX filesystems by SSH checks:vfs.fs.inode[{#FSNAME},pused].last()}&gt;={$VFS.FS.INODE.PUSED.MAX.CRIT:&quot;{#FSNAME}&quot;}</expression>
+                                        </dependency>
+                                    </dependencies>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>{#FSNAME}: Space utilization %</name>
+                            <type>DEPENDENT</type>
+                            <key>vfs.fs.size[{#FSNAME},pused]</key>
+                            <delay>0</delay>
+                            <history>7d</history>
+                            <value_type>FLOAT</value_type>
+                            <units>%</units>
+                            <description>Space utilization in % for {#FSNAME}</description>
+                            <application_prototypes>
+                                <application_prototype>
+                                    <name>Filesystem {#FSNAME}</name>
+                                </application_prototype>
+                            </application_prototypes>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$..PUsed</params>
+                                </step>
+                                <step>
+                                    <type>TRIM</type>
+                                    <params>&quot;[]</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>ssh.run[master_{#FSNAME}]</key>
+                            </master_item>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{last()}&gt;={$VFS.FS.PUSED.MAX.CRIT:&quot;{#FSNAME}&quot;}</expression>
+                                    <name>{#FSNAME}: Disk space is critically low (used &gt;= {$VFS.FS.PUSED.MAX.CRIT:&quot;{#FSNAME}&quot;}%)</name>
+                                    <opdata>Space used: {ITEM.LASTVALUE1}</opdata>
+                                    <priority>AVERAGE</priority>
+                                    <manual_close>YES</manual_close>
+                                </trigger_prototype>
+                                <trigger_prototype>
+                                    <expression>{last()}&gt;={$VFS.FS.PUSED.MAX.WARN:&quot;{#FSNAME}&quot;}</expression>
+                                    <name>{#FSNAME}: Disk space is low (used &gt;= {$VFS.FS.PUSED.MAX.WARN:&quot;{#FSNAME}&quot;}%)</name>
+                                    <opdata>Space used: {ITEM.LASTVALUE1}</opdata>
+                                    <priority>WARNING</priority>
+                                    <manual_close>YES</manual_close>
+                                    <dependencies>
+                                        <dependency>
+                                            <name>{#FSNAME}: Disk space is critically low (used &gt;= {$VFS.FS.PUSED.MAX.CRIT:&quot;{#FSNAME}&quot;}%)</name>
+                                            <expression>{Template AIX filesystems by SSH checks:vfs.fs.size[{#FSNAME},pused].last()}&gt;={$VFS.FS.PUSED.MAX.CRIT:&quot;{#FSNAME}&quot;}</expression>
+                                        </dependency>
+                                    </dependencies>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>{#FSNAME}: Total space</name>
+                            <type>DEPENDENT</type>
+                            <key>vfs.fs.size[{#FSNAME},total]</key>
+                            <delay>0</delay>
+                            <history>7d</history>
+                            <units>B</units>
+                            <description>Total space in Bytes</description>
+                            <application_prototypes>
+                                <application_prototype>
+                                    <name>Filesystem {#FSNAME}</name>
+                                </application_prototype>
+                            </application_prototypes>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$..[&quot;512-blocks&quot;]</params>
+                                </step>
+                                <step>
+                                    <type>TRIM</type>
+                                    <params>&quot;[]</params>
+                                </step>
+                                <step>
+                                    <type>MULTIPLIER</type>
+                                    <params>512</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>ssh.run[master_{#FSNAME}]</key>
+                            </master_item>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>{#FSNAME}: Used space</name>
+                            <type>DEPENDENT</type>
+                            <key>vfs.fs.size[{#FSNAME},used]</key>
+                            <delay>0</delay>
+                            <history>7d</history>
+                            <units>B</units>
+                            <description>Used storage in Bytes</description>
+                            <application_prototypes>
+                                <application_prototype>
+                                    <name>Filesystem {#FSNAME}</name>
+                                </application_prototype>
+                            </application_prototypes>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <params>$..Used</params>
+                                </step>
+                                <step>
+                                    <type>TRIM</type>
+                                    <params>&quot;[]</params>
+                                </step>
+                                <step>
+                                    <type>MULTIPLIER</type>
+                                    <params>512</params>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>ssh.run[master_{#FSNAME}]</key>
+                            </master_item>
+                        </item_prototype>
+                    </item_prototypes>
+                    <graph_prototypes>
+                        <graph_prototype>
+                            <name>{#FSNAME}: Disk space usage</name>
+                            <width>600</width>
+                            <height>340</height>
+                            <yaxismax>0</yaxismax>
+                            <show_work_period>NO</show_work_period>
+                            <show_triggers>NO</show_triggers>
+                            <type>PIE</type>
+                            <graph_items>
+                                <graph_item>
+                                    <sortorder>1</sortorder>
+                                    <color>969696</color>
+                                    <item>
+                                        <host>Template AIX filesystems by SSH checks</host>
+                                        <key>vfs.fs.size[{#FSNAME},total]</key>
+                                    </item>
+                                </graph_item>
+                                <graph_item>
+                                    <sortorder>2</sortorder>
+                                    <color>C80000</color>
+                                    <item>
+                                        <host>Template AIX filesystems by SSH checks</host>
+                                        <key>vfs.fs.size[{#FSNAME},used]</key>
+                                    </item>
+                                </graph_item>
+                            </graph_items>
+                        </graph_prototype>
+                        <graph_prototype>
+                            <name>{#FSNAME}: Disk space utilization</name>
+                            <graph_items>
+                                <graph_item>
+                                    <sortorder>1</sortorder>
+                                    <color>1A7C11</color>
+                                    <item>
+                                        <host>Template AIX filesystems by SSH checks</host>
+                                        <key>vfs.fs.size[{#FSNAME},pused]</key>
+                                    </item>
+                                </graph_item>
+                            </graph_items>
+                        </graph_prototype>
+                        <graph_prototype>
+                            <name>{#FSNAME}: Inodes utilization</name>
+                            <graph_items>
+                                <graph_item>
+                                    <sortorder>1</sortorder>
+                                    <color>1A7C11</color>
+                                    <item>
+                                        <host>Template AIX filesystems by SSH checks</host>
+                                        <key>vfs.fs.inode[{#FSNAME},iused]</key>
+                                    </item>
+                                </graph_item>
+                                <graph_item>
+                                    <sortorder>2</sortorder>
+                                    <color>F63100</color>
+                                    <item>
+                                        <host>Template AIX filesystems by SSH checks</host>
+                                        <key>vfs.fs.inode[{#FSNAME},pused]</key>
+                                    </item>
+                                </graph_item>
+                            </graph_items>
+                        </graph_prototype>
+                    </graph_prototypes>
+                    <lld_macro_paths>
+                        <lld_macro_path>
+                            <lld_macro>{#FSNAME}</lld_macro>
+                            <path>$.MountPoint</path>
+                        </lld_macro_path>
+                        <lld_macro_path>
+                            <lld_macro>{#FSTYPE}</lld_macro>
+                            <path>$.Vfs</path>
+                        </lld_macro_path>
+                    </lld_macro_paths>
+                    <preprocessing>
+                        <step>
+                            <type>CSV_TO_JSON</type>
+                            <params>:
+
+1</params>
+                        </step>
+                    </preprocessing>
+                </discovery_rule>
+            </discovery_rules>
+            <macros>
+                <macro>
+                    <macro>{$SSH_USER}</macro>
+                    <value>username</value>
+                    <description>User name for connection</description>
+                </macro>
+                <macro>
+                    <macro>{$VFS.FS.FSNAME.MATCHES}</macro>
+                    <value>.+</value>
+                    <description>This macro is used in filesystems discovery for filesystems selection</description>
+                </macro>
+                <macro>
+                    <macro>{$VFS.FS.FSNAME.NOT_MATCHES}</macro>
+                    <value>^(/dev|/sys|/run|/proc|.+/shm$)</value>
+                    <description>This macro is used in filesystems discovery for filesystems selection</description>
+                </macro>
+                <macro>
+                    <macro>{$VFS.FS.FSTYPE.MATCHES}</macro>
+                    <value>^(btrfs|ext2|ext3|ext4|reiser|xfs|ffs|ufs|jfs|jfs2|vxfs|hfs|apfs|refs|ntfs|zfs|nfs)$</value>
+                    <description>This macro is used in filesystems discovery for filesystems selection</description>
+                </macro>
+                <macro>
+                    <macro>{$VFS.FS.FSTYPE.NOT_MATCHES}</macro>
+                    <value>^\s$|^procfs$</value>
+                    <description>This macro is used in filesystems discovery for filesystems selection</description>
+                </macro>
+                <macro>
+                    <macro>{$VFS.FS.INODE.PUSED.MAX.CRIT}</macro>
+                    <value>90</value>
+                </macro>
+                <macro>
+                    <macro>{$VFS.FS.INODE.PUSED.MAX.WARN}</macro>
+                    <value>80</value>
+                </macro>
+                <macro>
+                    <macro>{$VFS.FS.PUSED.MAX.CRIT}</macro>
+                    <value>95</value>
+                </macro>
+                <macro>
+                    <macro>{$VFS.FS.PUSED.MAX.WARN}</macro>
+                    <value>92</value>
+                </macro>
+            </macros>
+            <screens>
+                <screen>
+                    <name>Filesystems</name>
+                    <hsize>3</hsize>
+                    <vsize>1</vsize>
+                    <screen_items>
+                        <screen_item>
+                            <resourcetype>20</resourcetype>
+                            <style>0</style>
+                            <resource>
+                                <name>{#FSNAME}: Disk space utilization</name>
+                                <host>Template AIX filesystems by SSH checks</host>
+                            </resource>
+                            <width>500</width>
+                            <height>100</height>
+                            <x>0</x>
+                            <y>0</y>
+                            <colspan>1</colspan>
+                            <rowspan>1</rowspan>
+                            <elements>0</elements>
+                            <valign>0</valign>
+                            <halign>0</halign>
+                            <dynamic>0</dynamic>
+                            <sort_triggers>0</sort_triggers>
+                            <url/>
+                            <application/>
+                            <max_columns>1</max_columns>
+                        </screen_item>
+                        <screen_item>
+                            <resourcetype>20</resourcetype>
+                            <style>0</style>
+                            <resource>
+                                <name>{#FSNAME}: Inodes utilization</name>
+                                <host>Template AIX filesystems by SSH checks</host>
+                            </resource>
+                            <width>500</width>
+                            <height>100</height>
+                            <x>1</x>
+                            <y>0</y>
+                            <colspan>1</colspan>
+                            <rowspan>1</rowspan>
+                            <elements>0</elements>
+                            <valign>0</valign>
+                            <halign>0</halign>
+                            <dynamic>0</dynamic>
+                            <sort_triggers>0</sort_triggers>
+                            <url/>
+                            <application/>
+                            <max_columns>1</max_columns>
+                        </screen_item>
+                        <screen_item>
+                            <resourcetype>20</resourcetype>
+                            <style>0</style>
+                            <resource>
+                                <name>{#FSNAME}: Disk space usage</name>
+                                <host>Template AIX filesystems by SSH checks</host>
+                            </resource>
+                            <width>500</width>
+                            <height>230</height>
+                            <x>2</x>
+                            <y>0</y>
+                            <colspan>1</colspan>
+                            <rowspan>1</rowspan>
+                            <elements>0</elements>
+                            <valign>0</valign>
+                            <halign>0</halign>
+                            <dynamic>0</dynamic>
+                            <sort_triggers>0</sort_triggers>
+                            <url/>
+                            <application/>
+                            <max_columns>1</max_columns>
+                        </screen_item>
+                    </screen_items>
+                </screen>
+            </screens>
+        </template>
+    </templates>
+</zabbix_export>

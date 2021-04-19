@@ -1,0 +1,1116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<zabbix_export>
+    <version>5.0</version>
+    <date>2021-04-19T15:59:00Z</date>
+    <groups>
+        <group>
+            <name>Templates/Operating systems</name>
+        </group>
+    </groups>
+    <templates>
+        <template>
+            <template>Template AIX OS by SSH checks</template>
+            <name>Template AIX OS by SSH checks</name>
+            <description>uses 'uptime' 'vmstat' commands</description>
+            <groups>
+                <group>
+                    <name>Templates/Operating systems</name>
+                </group>
+            </groups>
+            <applications>
+                <application>
+                    <name>CPU</name>
+                </application>
+                <application>
+                    <name>General</name>
+                </application>
+                <application>
+                    <name>Memory</name>
+                </application>
+                <application>
+                    <name>Performance</name>
+                </application>
+            </applications>
+            <items>
+                <item>
+                    <name>stat data master</name>
+                    <type>SSH</type>
+                    <key>ssh.run[stat_master]</key>
+                    <delay>5m</delay>
+                    <history>0</history>
+                    <trends>0</trends>
+                    <value_type>TEXT</value_type>
+                    <params>uptime; vmstat 1 1 | sed -n -e '2p;$p' | sed 's/^/ /' | tr -s ' ' ','</params>
+                    <authtype>PUBLIC_KEY</authtype>
+                    <username>{$SSH_USER}</username>
+                    <publickey>id_rsa.pub</publickey>
+                    <privatekey>id_rsa</privatekey>
+                    <description>'uptime' - The load average is the number of runnable processes over the preceding 1-, 5-, 15-minute intervals&#13;
+'vmstat' - reports statistics about kernel threads, virtual memory, hypervisor pages, processor activity. These system-wide statistics (among all processors) are calculated as averages for values that are expressed as percentages, and as sums otherwise.</description>
+                </item>
+                <item>
+                    <name>CPU Entitled capacity consumed</name>
+                    <type>DEPENDENT</type>
+                    <key>system.cpu.ec.ssh</key>
+                    <delay>0</delay>
+                    <history>14d</history>
+                    <value_type>FLOAT</value_type>
+                    <units>%</units>
+                    <applications>
+                        <application>
+                            <name>CPU</name>
+                        </application>
+                        <application>
+                            <name>Performance</name>
+                        </application>
+                    </applications>
+                    <preprocessing>
+                        <step>
+                            <type>REGEX</type>
+                            <params>,\d+,\d+,\d+,\d+,\d+,\d+,\d+,\d+,\d+,\d+,\d+,\d+,\d+,\d+,\d+,\d+,\d+,(\d+\.*\d+),(\d+\.*\d+)
+\2</params>
+                        </step>
+                    </preprocessing>
+                    <master_item>
+                        <key>ssh.run[stat_master]</key>
+                    </master_item>
+                </item>
+                <item>
+                    <name>CPU Processor idle time</name>
+                    <type>DEPENDENT</type>
+                    <key>system.cpu.id.ssh</key>
+                    <delay>0</delay>
+                    <history>14d</history>
+                    <units>%</units>
+                    <applications>
+                        <application>
+                            <name>CPU</name>
+                        </application>
+                        <application>
+                            <name>Performance</name>
+                        </application>
+                    </applications>
+                    <preprocessing>
+                        <step>
+                            <type>REGEX</type>
+                            <params>,\d+,\d+,\d+,\d+,\d+,\d+,\d+,\d+,\d+,\d+,\d+,\d+,\d+,(\d+),(\d+),(\d+).+
+\3</params>
+                        </step>
+                    </preprocessing>
+                    <master_item>
+                        <key>ssh.run[stat_master]</key>
+                    </master_item>
+                </item>
+                <item>
+                    <name>Runnable kernel threads (wait queue)</name>
+                    <type>DEPENDENT</type>
+                    <key>system.cpu.kthr.b.ssh</key>
+                    <delay>0</delay>
+                    <history>14d</history>
+                    <description>Average number of kernel threads that are placed in the Virtual Memory Manager (VMM) wait queue (awaiting resource, awaiting input/output)</description>
+                    <applications>
+                        <application>
+                            <name>CPU</name>
+                        </application>
+                        <application>
+                            <name>Performance</name>
+                        </application>
+                    </applications>
+                    <preprocessing>
+                        <step>
+                            <type>REGEX</type>
+                            <params>,(\d+),(\d+).+
+\2</params>
+                        </step>
+                    </preprocessing>
+                    <master_item>
+                        <key>ssh.run[stat_master]</key>
+                    </master_item>
+                </item>
+                <item>
+                    <name>Runnable kernel threads (run queue)</name>
+                    <type>DEPENDENT</type>
+                    <key>system.cpu.kthr.r.ssh</key>
+                    <delay>0</delay>
+                    <history>14d</history>
+                    <description>Average number of runnable kernel threads. Runnable threads consist of the threads that are ready but still waiting to run, and the threads that are already running</description>
+                    <applications>
+                        <application>
+                            <name>CPU</name>
+                        </application>
+                        <application>
+                            <name>Performance</name>
+                        </application>
+                    </applications>
+                    <preprocessing>
+                        <step>
+                            <type>REGEX</type>
+                            <params>,(\d+),.+
+\1</params>
+                        </step>
+                    </preprocessing>
+                    <master_item>
+                        <key>ssh.run[stat_master]</key>
+                    </master_item>
+                </item>
+                <item>
+                    <name>Number of logical processors</name>
+                    <type>DEPENDENT</type>
+                    <key>system.cpu.lnumber.ssh</key>
+                    <delay>0</delay>
+                    <history>14d</history>
+                    <applications>
+                        <application>
+                            <name>CPU</name>
+                        </application>
+                    </applications>
+                    <preprocessing>
+                        <step>
+                            <type>REGEX</type>
+                            <params>System,configuration:,lcpu=([0-9]+)
+\1</params>
+                        </step>
+                        <step>
+                            <type>DISCARD_UNCHANGED_HEARTBEAT</type>
+                            <params>4h</params>
+                        </step>
+                    </preprocessing>
+                    <master_item>
+                        <key>ssh.run[stat_master]</key>
+                    </master_item>
+                </item>
+                <item>
+                    <name>Processor load (1 min average per core)</name>
+                    <type>DEPENDENT</type>
+                    <key>system.cpu.load.ssh[percpu,avg1]</key>
+                    <delay>0</delay>
+                    <history>14d</history>
+                    <value_type>FLOAT</value_type>
+                    <applications>
+                        <application>
+                            <name>CPU</name>
+                        </application>
+                        <application>
+                            <name>Performance</name>
+                        </application>
+                    </applications>
+                    <preprocessing>
+                        <step>
+                            <type>REGEX</type>
+                            <params>(\d+\.\d+), (\d+\.\d+), (\d+\.\d+)
+\1</params>
+                        </step>
+                    </preprocessing>
+                    <master_item>
+                        <key>ssh.run[stat_master]</key>
+                    </master_item>
+                    <triggers>
+                        <trigger>
+                            <expression>{last()}&gt;{$CPU.LOAD.BY_SSH}</expression>
+                            <name>Processor load is too high on {HOST.NAME}</name>
+                            <priority>WARNING</priority>
+                            <manual_close>YES</manual_close>
+                        </trigger>
+                    </triggers>
+                </item>
+                <item>
+                    <name>Processor load (5 min average per core)</name>
+                    <type>DEPENDENT</type>
+                    <key>system.cpu.load.ssh[percpu,avg5]</key>
+                    <delay>0</delay>
+                    <history>14d</history>
+                    <value_type>FLOAT</value_type>
+                    <applications>
+                        <application>
+                            <name>CPU</name>
+                        </application>
+                        <application>
+                            <name>Performance</name>
+                        </application>
+                    </applications>
+                    <preprocessing>
+                        <step>
+                            <type>REGEX</type>
+                            <params>(\d+\.\d+), (\d+\.\d+), (\d+\.\d+)
+\2</params>
+                        </step>
+                    </preprocessing>
+                    <master_item>
+                        <key>ssh.run[stat_master]</key>
+                    </master_item>
+                </item>
+                <item>
+                    <name>Processor load (15 min average per core)</name>
+                    <type>DEPENDENT</type>
+                    <key>system.cpu.load.ssh[percpu,avg15]</key>
+                    <delay>0</delay>
+                    <history>14d</history>
+                    <value_type>FLOAT</value_type>
+                    <applications>
+                        <application>
+                            <name>CPU</name>
+                        </application>
+                        <application>
+                            <name>Performance</name>
+                        </application>
+                    </applications>
+                    <preprocessing>
+                        <step>
+                            <type>REGEX</type>
+                            <params>(\d+\.\d+), (\d+\.\d+), (\d+\.\d+)
+\3</params>
+                        </step>
+                    </preprocessing>
+                    <master_item>
+                        <key>ssh.run[stat_master]</key>
+                    </master_item>
+                </item>
+                <item>
+                    <name>CPU Number of physical processors used</name>
+                    <type>DEPENDENT</type>
+                    <key>system.cpu.pc.ssh</key>
+                    <delay>0</delay>
+                    <history>14d</history>
+                    <value_type>FLOAT</value_type>
+                    <applications>
+                        <application>
+                            <name>CPU</name>
+                        </application>
+                        <application>
+                            <name>Performance</name>
+                        </application>
+                    </applications>
+                    <preprocessing>
+                        <step>
+                            <type>REGEX</type>
+                            <params>,\d+,\d+,\d+,\d+,\d+,\d+,\d+,\d+,\d+,\d+,\d+,\d+,\d+,\d+,\d+,\d+,\d+,(\d+\.*\d+).+
+\1</params>
+                        </step>
+                    </preprocessing>
+                    <master_item>
+                        <key>ssh.run[stat_master]</key>
+                    </master_item>
+                </item>
+                <item>
+                    <name>CPU System time</name>
+                    <type>DEPENDENT</type>
+                    <key>system.cpu.sy.ssh</key>
+                    <delay>0</delay>
+                    <history>14d</history>
+                    <units>%</units>
+                    <applications>
+                        <application>
+                            <name>CPU</name>
+                        </application>
+                        <application>
+                            <name>Performance</name>
+                        </application>
+                    </applications>
+                    <preprocessing>
+                        <step>
+                            <type>REGEX</type>
+                            <params>,\d+,\d+,\d+,\d+,\d+,\d+,\d+,\d+,\d+,\d+,\d+,\d+,\d+,(\d+),(\d+).+
+\2</params>
+                        </step>
+                    </preprocessing>
+                    <master_item>
+                        <key>ssh.run[stat_master]</key>
+                    </master_item>
+                </item>
+                <item>
+                    <name>CPU User time</name>
+                    <type>DEPENDENT</type>
+                    <key>system.cpu.us.ssh</key>
+                    <delay>0</delay>
+                    <history>14d</history>
+                    <units>%</units>
+                    <applications>
+                        <application>
+                            <name>CPU</name>
+                        </application>
+                        <application>
+                            <name>Performance</name>
+                        </application>
+                    </applications>
+                    <preprocessing>
+                        <step>
+                            <type>REGEX</type>
+                            <params>,\d+,\d+,\d+,\d+,\d+,\d+,\d+,\d+,\d+,\d+,\d+,\d+,\d+,(\d+).+
+\1</params>
+                        </step>
+                    </preprocessing>
+                    <master_item>
+                        <key>ssh.run[stat_master]</key>
+                    </master_item>
+                </item>
+                <item>
+                    <name>CPU Utilization</name>
+                    <type>DEPENDENT</type>
+                    <key>system.cpu.util.ssh</key>
+                    <delay>0</delay>
+                    <units>%</units>
+                    <description>CPU utilization in %</description>
+                    <applications>
+                        <application>
+                            <name>CPU</name>
+                        </application>
+                        <application>
+                            <name>Performance</name>
+                        </application>
+                    </applications>
+                    <preprocessing>
+                        <step>
+                            <type>JAVASCRIPT</type>
+                            <params>//Calculate utilization
+return (100 - value)</params>
+                        </step>
+                    </preprocessing>
+                    <master_item>
+                        <key>system.cpu.id.ssh</key>
+                    </master_item>
+                    <triggers>
+                        <trigger>
+                            <expression>{min(5m)}&gt;{$CPU.UTIL.CRIT.BY_SSH}</expression>
+                            <name>High CPU utilization (over {$CPU.UTIL.CRIT.BY_SSH}% for 5m)</name>
+                            <opdata>Current utilization: {ITEM.LASTVALUE1}</opdata>
+                            <priority>WARNING</priority>
+                            <manual_close>YES</manual_close>
+                        </trigger>
+                    </triggers>
+                </item>
+                <item>
+                    <name>CPU Processor iowait time</name>
+                    <type>DEPENDENT</type>
+                    <key>system.cpu.wa.ssh</key>
+                    <delay>0</delay>
+                    <history>14d</history>
+                    <units>%</units>
+                    <description>Processor idle time during which the system had outstanding disk/NFS I/O request</description>
+                    <applications>
+                        <application>
+                            <name>CPU</name>
+                        </application>
+                        <application>
+                            <name>Performance</name>
+                        </application>
+                    </applications>
+                    <preprocessing>
+                        <step>
+                            <type>REGEX</type>
+                            <params>,\d+,\d+,\d+,\d+,\d+,\d+,\d+,\d+,\d+,\d+,\d+,\d+,\d+,(\d+),(\d+),(\d+),(\d+).+
+\4</params>
+                        </step>
+                    </preprocessing>
+                    <master_item>
+                        <key>ssh.run[stat_master]</key>
+                    </master_item>
+                    <triggers>
+                        <trigger>
+                            <expression>{avg(10m)}&gt;{$CPU.WA.BY_SSH}</expression>
+                            <name>Disk I/O is overloaded on {HOST.NAME}</name>
+                            <priority>WARNING</priority>
+                            <manual_close>YES</manual_close>
+                        </trigger>
+                    </triggers>
+                </item>
+                <item>
+                    <name>Entitled capacity</name>
+                    <type>DEPENDENT</type>
+                    <key>system.ent.ssh</key>
+                    <delay>0</delay>
+                    <history>14d</history>
+                    <value_type>FLOAT</value_type>
+                    <applications>
+                        <application>
+                            <name>Performance</name>
+                        </application>
+                    </applications>
+                    <preprocessing>
+                        <step>
+                            <type>REGEX</type>
+                            <params>System,configuration:,lcpu=([0-9]+),mem=([0-9]+)MB,ent=(\d+\.\d+)
+\3</params>
+                        </step>
+                    </preprocessing>
+                    <master_item>
+                        <key>ssh.run[stat_master]</key>
+                    </master_item>
+                </item>
+                <item>
+                    <name>Kernel thread context switches</name>
+                    <type>DEPENDENT</type>
+                    <key>system.faults.cs.ssh</key>
+                    <delay>0</delay>
+                    <history>14d</history>
+                    <applications>
+                        <application>
+                            <name>CPU</name>
+                        </application>
+                        <application>
+                            <name>Performance</name>
+                        </application>
+                    </applications>
+                    <preprocessing>
+                        <step>
+                            <type>REGEX</type>
+                            <params>,\d+,\d+,\d+,\d+,\d+,\d+,\d+,\d+,\d+,\d+,(\d+),(\d+),(\d+).+
+\3</params>
+                        </step>
+                    </preprocessing>
+                    <master_item>
+                        <key>ssh.run[stat_master]</key>
+                    </master_item>
+                </item>
+                <item>
+                    <name>Device interrupts</name>
+                    <type>DEPENDENT</type>
+                    <key>system.faults.in.ssh</key>
+                    <delay>0</delay>
+                    <history>14d</history>
+                    <applications>
+                        <application>
+                            <name>CPU</name>
+                        </application>
+                        <application>
+                            <name>Performance</name>
+                        </application>
+                    </applications>
+                    <preprocessing>
+                        <step>
+                            <type>REGEX</type>
+                            <params>,\d+,\d+,\d+,\d+,\d+,\d+,\d+,\d+,\d+,\d+,(\d+).+
+\1</params>
+                        </step>
+                    </preprocessing>
+                    <master_item>
+                        <key>ssh.run[stat_master]</key>
+                    </master_item>
+                </item>
+                <item>
+                    <name>System calls</name>
+                    <type>DEPENDENT</type>
+                    <key>system.faults.sy.ssh</key>
+                    <delay>0</delay>
+                    <history>14d</history>
+                    <applications>
+                        <application>
+                            <name>CPU</name>
+                        </application>
+                        <application>
+                            <name>Performance</name>
+                        </application>
+                    </applications>
+                    <preprocessing>
+                        <step>
+                            <type>REGEX</type>
+                            <params>,\d+,\d+,\d+,\d+,\d+,\d+,\d+,\d+,\d+,\d+,(\d+),(\d+).+
+\2</params>
+                        </step>
+                    </preprocessing>
+                    <master_item>
+                        <key>ssh.run[stat_master]</key>
+                    </master_item>
+                </item>
+                <item>
+                    <name>Active virtual pages</name>
+                    <type>DEPENDENT</type>
+                    <key>system.mem.avm.ssh</key>
+                    <delay>0</delay>
+                    <history>14d</history>
+                    <units>!pages</units>
+                    <description>Active virtual pages. A page is 4096 bytes.</description>
+                    <applications>
+                        <application>
+                            <name>Memory</name>
+                        </application>
+                    </applications>
+                    <preprocessing>
+                        <step>
+                            <type>REGEX</type>
+                            <params>,(\d+,\d+),(\d+).+
+\2</params>
+                        </step>
+                    </preprocessing>
+                    <master_item>
+                        <key>ssh.run[stat_master]</key>
+                    </master_item>
+                </item>
+                <item>
+                    <name>Size of the free list</name>
+                    <type>DEPENDENT</type>
+                    <key>system.mem.fre.ssh</key>
+                    <delay>0</delay>
+                    <history>14d</history>
+                    <units>!pages</units>
+                    <description>Size of the free list. A page is 4096 bytes.</description>
+                    <applications>
+                        <application>
+                            <name>Memory</name>
+                        </application>
+                    </applications>
+                    <preprocessing>
+                        <step>
+                            <type>REGEX</type>
+                            <params>,(\d+,\d+),(\d+),(\d+).+
+\3</params>
+                        </step>
+                    </preprocessing>
+                    <master_item>
+                        <key>ssh.run[stat_master]</key>
+                    </master_item>
+                </item>
+                <item>
+                    <name>Clock cycles by page-replacement algorithm</name>
+                    <type>DEPENDENT</type>
+                    <key>system.mem.page.cy.ssh</key>
+                    <delay>0</delay>
+                    <history>14d</history>
+                    <applications>
+                        <application>
+                            <name>Memory</name>
+                        </application>
+                    </applications>
+                    <preprocessing>
+                        <step>
+                            <type>REGEX</type>
+                            <params>,\d+,\d+,\d+,\d+,(\d+),(\d+),(\d+),(\d+),(\d+),(\d+).+
+\6</params>
+                        </step>
+                    </preprocessing>
+                    <master_item>
+                        <key>ssh.run[stat_master]</key>
+                    </master_item>
+                </item>
+                <item>
+                    <name>Pages freed (page replacement)</name>
+                    <type>DEPENDENT</type>
+                    <key>system.mem.page.fr.ssh</key>
+                    <delay>0</delay>
+                    <history>14d</history>
+                    <applications>
+                        <application>
+                            <name>Memory</name>
+                        </application>
+                    </applications>
+                    <preprocessing>
+                        <step>
+                            <type>REGEX</type>
+                            <params>,\d+,\d+,\d+,\d+,(\d+),(\d+),(\d+),(\d+).+
+\4</params>
+                        </step>
+                    </preprocessing>
+                    <master_item>
+                        <key>ssh.run[stat_master]</key>
+                    </master_item>
+                </item>
+                <item>
+                    <name>Pages that are paged in from paging space</name>
+                    <type>DEPENDENT</type>
+                    <key>system.mem.page.pi.ssh</key>
+                    <delay>0</delay>
+                    <history>14d</history>
+                    <applications>
+                        <application>
+                            <name>Memory</name>
+                        </application>
+                    </applications>
+                    <preprocessing>
+                        <step>
+                            <type>REGEX</type>
+                            <params>,\d+,\d+,\d+,\d+,(\d+),(\d+).+
+\2</params>
+                        </step>
+                    </preprocessing>
+                    <master_item>
+                        <key>ssh.run[stat_master]</key>
+                    </master_item>
+                </item>
+                <item>
+                    <name>Pages paged out to paging space</name>
+                    <type>DEPENDENT</type>
+                    <key>system.mem.page.po.ssh</key>
+                    <delay>0</delay>
+                    <history>14d</history>
+                    <applications>
+                        <application>
+                            <name>Memory</name>
+                        </application>
+                    </applications>
+                    <preprocessing>
+                        <step>
+                            <type>REGEX</type>
+                            <params>,\d+,\d+,\d+,\d+,(\d+),(\d+),(\d+).+
+\3</params>
+                        </step>
+                    </preprocessing>
+                    <master_item>
+                        <key>ssh.run[stat_master]</key>
+                    </master_item>
+                </item>
+                <item>
+                    <name>Pager input/output list</name>
+                    <type>DEPENDENT</type>
+                    <key>system.mem.page.re.ssh</key>
+                    <delay>0</delay>
+                    <history>14d</history>
+                    <applications>
+                        <application>
+                            <name>Memory</name>
+                        </application>
+                    </applications>
+                    <preprocessing>
+                        <step>
+                            <type>REGEX</type>
+                            <params>,\d+,\d+,\d+,\d+,(\d+).+
+\1</params>
+                        </step>
+                    </preprocessing>
+                    <master_item>
+                        <key>ssh.run[stat_master]</key>
+                    </master_item>
+                </item>
+                <item>
+                    <name>Pages that are scanned by page-replacement algorithm</name>
+                    <type>DEPENDENT</type>
+                    <key>system.mem.page.sr.ssh</key>
+                    <delay>0</delay>
+                    <history>14d</history>
+                    <applications>
+                        <application>
+                            <name>Memory</name>
+                        </application>
+                    </applications>
+                    <preprocessing>
+                        <step>
+                            <type>REGEX</type>
+                            <params>,\d+,\d+,\d+,\d+,(\d+),(\d+),(\d+),(\d+),(\d+).+
+\5</params>
+                        </step>
+                    </preprocessing>
+                    <master_item>
+                        <key>ssh.run[stat_master]</key>
+                    </master_item>
+                </item>
+                <item>
+                    <name>Total memory</name>
+                    <type>DEPENDENT</type>
+                    <key>system.memory.size.ssh[total]</key>
+                    <delay>0</delay>
+                    <history>14d</history>
+                    <units>!MB</units>
+                    <applications>
+                        <application>
+                            <name>Memory</name>
+                        </application>
+                    </applications>
+                    <preprocessing>
+                        <step>
+                            <type>REGEX</type>
+                            <params>System,configuration:,lcpu=([0-9]+),mem=([0-9]+)MB
+\2</params>
+                        </step>
+                        <step>
+                            <type>DISCARD_UNCHANGED_HEARTBEAT</type>
+                            <params>4h</params>
+                        </step>
+                    </preprocessing>
+                    <master_item>
+                        <key>ssh.run[stat_master]</key>
+                    </master_item>
+                </item>
+            </items>
+            <macros>
+                <macro>
+                    <macro>{$CPU.LOAD.BY_SSH}</macro>
+                    <value>5</value>
+                    <description>Average system load calculated over a given period of time</description>
+                </macro>
+                <macro>
+                    <macro>{$CPU.UTIL.CRIT.BY_SSH}</macro>
+                    <value>90</value>
+                    <description>CPU utilization %</description>
+                </macro>
+                <macro>
+                    <macro>{$CPU.WA.BY_SSH}</macro>
+                    <value>30</value>
+                    <description>Processor idle time during which the system had outstanding disk/NFS I/O request (in %)</description>
+                </macro>
+                <macro>
+                    <macro>{$SSH_USER}</macro>
+                    <value>username</value>
+                    <description>User name for connection</description>
+                </macro>
+            </macros>
+            <screens>
+                <screen>
+                    <name>System performance</name>
+                    <hsize>2</hsize>
+                    <vsize>3</vsize>
+                    <screen_items>
+                        <screen_item>
+                            <resourcetype>0</resourcetype>
+                            <style>0</style>
+                            <resource>
+                                <name>CPU utilization</name>
+                                <host>Template AIX OS by SSH checks</host>
+                            </resource>
+                            <width>500</width>
+                            <height>100</height>
+                            <x>0</x>
+                            <y>0</y>
+                            <colspan>1</colspan>
+                            <rowspan>1</rowspan>
+                            <elements>0</elements>
+                            <valign>0</valign>
+                            <halign>0</halign>
+                            <dynamic>0</dynamic>
+                            <sort_triggers>0</sort_triggers>
+                            <url/>
+                            <application/>
+                            <max_columns>3</max_columns>
+                        </screen_item>
+                        <screen_item>
+                            <resourcetype>0</resourcetype>
+                            <style>0</style>
+                            <resource>
+                                <name>CPU jumps</name>
+                                <host>Template AIX OS by SSH checks</host>
+                            </resource>
+                            <width>500</width>
+                            <height>100</height>
+                            <x>1</x>
+                            <y>0</y>
+                            <colspan>1</colspan>
+                            <rowspan>1</rowspan>
+                            <elements>0</elements>
+                            <valign>0</valign>
+                            <halign>0</halign>
+                            <dynamic>0</dynamic>
+                            <sort_triggers>0</sort_triggers>
+                            <url/>
+                            <application/>
+                            <max_columns>3</max_columns>
+                        </screen_item>
+                        <screen_item>
+                            <resourcetype>0</resourcetype>
+                            <style>0</style>
+                            <resource>
+                                <name>System load</name>
+                                <host>Template AIX OS by SSH checks</host>
+                            </resource>
+                            <width>500</width>
+                            <height>100</height>
+                            <x>0</x>
+                            <y>1</y>
+                            <colspan>1</colspan>
+                            <rowspan>1</rowspan>
+                            <elements>0</elements>
+                            <valign>0</valign>
+                            <halign>0</halign>
+                            <dynamic>0</dynamic>
+                            <sort_triggers>0</sort_triggers>
+                            <url/>
+                            <application/>
+                            <max_columns>3</max_columns>
+                        </screen_item>
+                        <screen_item>
+                            <resourcetype>0</resourcetype>
+                            <style>0</style>
+                            <resource>
+                                <name>Kernel thread states &amp; CPU consumed</name>
+                                <host>Template AIX OS by SSH checks</host>
+                            </resource>
+                            <width>500</width>
+                            <height>100</height>
+                            <x>1</x>
+                            <y>1</y>
+                            <colspan>1</colspan>
+                            <rowspan>1</rowspan>
+                            <elements>0</elements>
+                            <valign>0</valign>
+                            <halign>0</halign>
+                            <dynamic>0</dynamic>
+                            <sort_triggers>0</sort_triggers>
+                            <url/>
+                            <application/>
+                            <max_columns>3</max_columns>
+                        </screen_item>
+                        <screen_item>
+                            <resourcetype>0</resourcetype>
+                            <style>0</style>
+                            <resource>
+                                <name>Memory pages</name>
+                                <host>Template AIX OS by SSH checks</host>
+                            </resource>
+                            <width>500</width>
+                            <height>100</height>
+                            <x>0</x>
+                            <y>2</y>
+                            <colspan>1</colspan>
+                            <rowspan>1</rowspan>
+                            <elements>0</elements>
+                            <valign>0</valign>
+                            <halign>0</halign>
+                            <dynamic>0</dynamic>
+                            <sort_triggers>0</sort_triggers>
+                            <url/>
+                            <application/>
+                            <max_columns>3</max_columns>
+                        </screen_item>
+                        <screen_item>
+                            <resourcetype>0</resourcetype>
+                            <style>0</style>
+                            <resource>
+                                <name>Page faults and paging activity</name>
+                                <host>Template AIX OS by SSH checks</host>
+                            </resource>
+                            <width>500</width>
+                            <height>100</height>
+                            <x>1</x>
+                            <y>2</y>
+                            <colspan>1</colspan>
+                            <rowspan>1</rowspan>
+                            <elements>0</elements>
+                            <valign>0</valign>
+                            <halign>0</halign>
+                            <dynamic>0</dynamic>
+                            <sort_triggers>0</sort_triggers>
+                            <url/>
+                            <application/>
+                            <max_columns>3</max_columns>
+                        </screen_item>
+                    </screen_items>
+                </screen>
+            </screens>
+        </template>
+    </templates>
+    <graphs>
+        <graph>
+            <name>CPU jumps</name>
+            <graph_items>
+                <graph_item>
+                    <color>1A7C11</color>
+                    <item>
+                        <host>Template AIX OS by SSH checks</host>
+                        <key>system.faults.in.ssh</key>
+                    </item>
+                </graph_item>
+                <graph_item>
+                    <sortorder>1</sortorder>
+                    <color>F63100</color>
+                    <item>
+                        <host>Template AIX OS by SSH checks</host>
+                        <key>system.faults.sy.ssh</key>
+                    </item>
+                </graph_item>
+                <graph_item>
+                    <sortorder>2</sortorder>
+                    <color>2774A4</color>
+                    <item>
+                        <host>Template AIX OS by SSH checks</host>
+                        <key>system.faults.cs.ssh</key>
+                    </item>
+                </graph_item>
+            </graph_items>
+        </graph>
+        <graph>
+            <name>CPU utilization</name>
+            <show_triggers>NO</show_triggers>
+            <type>STACKED</type>
+            <ymin_type_1>FIXED</ymin_type_1>
+            <ymax_type_1>FIXED</ymax_type_1>
+            <graph_items>
+                <graph_item>
+                    <color>000099</color>
+                    <item>
+                        <host>Template AIX OS by SSH checks</host>
+                        <key>system.cpu.us.ssh</key>
+                    </item>
+                </graph_item>
+                <graph_item>
+                    <sortorder>1</sortorder>
+                    <color>990000</color>
+                    <item>
+                        <host>Template AIX OS by SSH checks</host>
+                        <key>system.cpu.sy.ssh</key>
+                    </item>
+                </graph_item>
+                <graph_item>
+                    <sortorder>2</sortorder>
+                    <color>999900</color>
+                    <item>
+                        <host>Template AIX OS by SSH checks</host>
+                        <key>system.cpu.wa.ssh</key>
+                    </item>
+                </graph_item>
+                <graph_item>
+                    <sortorder>3</sortorder>
+                    <color>009900</color>
+                    <item>
+                        <host>Template AIX OS by SSH checks</host>
+                        <key>system.cpu.id.ssh</key>
+                    </item>
+                </graph_item>
+            </graph_items>
+        </graph>
+        <graph>
+            <name>CPU utilization &amp; idle</name>
+            <type>STACKED</type>
+            <ymin_type_1>FIXED</ymin_type_1>
+            <ymax_type_1>FIXED</ymax_type_1>
+            <graph_items>
+                <graph_item>
+                    <color>990000</color>
+                    <item>
+                        <host>Template AIX OS by SSH checks</host>
+                        <key>system.cpu.util.ssh</key>
+                    </item>
+                </graph_item>
+                <graph_item>
+                    <sortorder>1</sortorder>
+                    <color>009900</color>
+                    <item>
+                        <host>Template AIX OS by SSH checks</host>
+                        <key>system.cpu.id.ssh</key>
+                    </item>
+                </graph_item>
+            </graph_items>
+        </graph>
+        <graph>
+            <name>Kernel thread states &amp; CPU consumed</name>
+            <graph_items>
+                <graph_item>
+                    <color>1A7C11</color>
+                    <item>
+                        <host>Template AIX OS by SSH checks</host>
+                        <key>system.cpu.ec.ssh</key>
+                    </item>
+                </graph_item>
+                <graph_item>
+                    <sortorder>1</sortorder>
+                    <color>F63100</color>
+                    <item>
+                        <host>Template AIX OS by SSH checks</host>
+                        <key>system.cpu.pc.ssh</key>
+                    </item>
+                </graph_item>
+                <graph_item>
+                    <sortorder>2</sortorder>
+                    <color>2774A4</color>
+                    <item>
+                        <host>Template AIX OS by SSH checks</host>
+                        <key>system.cpu.kthr.r.ssh</key>
+                    </item>
+                </graph_item>
+                <graph_item>
+                    <sortorder>3</sortorder>
+                    <color>A54F10</color>
+                    <item>
+                        <host>Template AIX OS by SSH checks</host>
+                        <key>system.cpu.kthr.b.ssh</key>
+                    </item>
+                </graph_item>
+            </graph_items>
+        </graph>
+        <graph>
+            <name>Memory pages</name>
+            <graph_items>
+                <graph_item>
+                    <color>1A7C11</color>
+                    <item>
+                        <host>Template AIX OS by SSH checks</host>
+                        <key>system.mem.avm.ssh</key>
+                    </item>
+                </graph_item>
+                <graph_item>
+                    <sortorder>1</sortorder>
+                    <color>F63100</color>
+                    <item>
+                        <host>Template AIX OS by SSH checks</host>
+                        <key>system.mem.fre.ssh</key>
+                    </item>
+                </graph_item>
+            </graph_items>
+        </graph>
+        <graph>
+            <name>Page faults and paging activity</name>
+            <graph_items>
+                <graph_item>
+                    <color>1A7C11</color>
+                    <item>
+                        <host>Template AIX OS by SSH checks</host>
+                        <key>system.mem.page.cy.ssh</key>
+                    </item>
+                </graph_item>
+                <graph_item>
+                    <sortorder>1</sortorder>
+                    <color>F63100</color>
+                    <item>
+                        <host>Template AIX OS by SSH checks</host>
+                        <key>system.mem.page.re.ssh</key>
+                    </item>
+                </graph_item>
+                <graph_item>
+                    <sortorder>2</sortorder>
+                    <color>2774A4</color>
+                    <item>
+                        <host>Template AIX OS by SSH checks</host>
+                        <key>system.mem.page.fr.ssh</key>
+                    </item>
+                </graph_item>
+                <graph_item>
+                    <sortorder>3</sortorder>
+                    <color>A54F10</color>
+                    <item>
+                        <host>Template AIX OS by SSH checks</host>
+                        <key>system.mem.page.po.ssh</key>
+                    </item>
+                </graph_item>
+                <graph_item>
+                    <sortorder>4</sortorder>
+                    <color>FC6EA3</color>
+                    <item>
+                        <host>Template AIX OS by SSH checks</host>
+                        <key>system.mem.page.pi.ssh</key>
+                    </item>
+                </graph_item>
+                <graph_item>
+                    <sortorder>5</sortorder>
+                    <color>6C59DC</color>
+                    <item>
+                        <host>Template AIX OS by SSH checks</host>
+                        <key>system.mem.page.sr.ssh</key>
+                    </item>
+                </graph_item>
+            </graph_items>
+        </graph>
+        <graph>
+            <name>System load</name>
+            <graph_items>
+                <graph_item>
+                    <color>1A7C11</color>
+                    <item>
+                        <host>Template AIX OS by SSH checks</host>
+                        <key>system.cpu.load.ssh[percpu,avg1]</key>
+                    </item>
+                </graph_item>
+                <graph_item>
+                    <sortorder>1</sortorder>
+                    <color>F63100</color>
+                    <item>
+                        <host>Template AIX OS by SSH checks</host>
+                        <key>system.cpu.load.ssh[percpu,avg5]</key>
+                    </item>
+                </graph_item>
+                <graph_item>
+                    <sortorder>2</sortorder>
+                    <color>2774A4</color>
+                    <item>
+                        <host>Template AIX OS by SSH checks</host>
+                        <key>system.cpu.load.ssh[percpu,avg15]</key>
+                    </item>
+                </graph_item>
+            </graph_items>
+        </graph>
+    </graphs>
+</zabbix_export>
