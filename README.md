@@ -13,11 +13,20 @@ Template files:
 
 [AIX filesystems by SSH checks.xml](AIX%20filesystems%20by%20SSH%20checks.xml) for filesystems
 
+Screen expamples:
+
+OS parameters:
+
+![OS parameters](https://github.com/splitek/AIX-OS-by-SSH-checks/blob/main/AIX%20ssh%20checks.png)
+
+Filesystem parameters:
+
+![Filesystem parameters](https://github.com/splitek/AIX-OS-by-SSH-checks/blob/main/AIX%20ssh%20filesystems.png)
+
 This templates was tested on:
 
 * Zabbix 4.4.x, 5.0.x
 * AIX Version 6.1
-
 
 # Table of Contents:
 
